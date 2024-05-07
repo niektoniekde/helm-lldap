@@ -1,5 +1,7 @@
 # helm-lldap
-Simple Helm chart for ``ldap`` deployment to Kubernetes cluster.
+Simple Helm chart for [lldap](https://github.com/lldap/lldap) deployment to Kubernetes cluster.
+Official rootless docker image of [lldap](https://hub.docker.com/r/lldap/lldap) is used. 
+Chart ``appVersion`` corresponds to image tag.
 
 Web interface is available via Ingress. Port for LDAPS is available via service - LoadBalancer type by default.
 Non-encrypted LDAP port isn't even exposed from container. 
