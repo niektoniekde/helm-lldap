@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "default.fullname" . }}-web
+  labels:
+    {{- include "default.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.web.type }}
+  ports:
+    {{- with toYaml .Values.service.web.ports }}
+      {{- . | nindent 4 }}
+    {{- end }}
+  selector:
+    {{- include "default.selectorLabels" . | nindent 4 }}
+  externalIPs:
+  {{ range .Values.service.web.externalIPs -}}
+    - {{ . | quote }}
+  {{- end }}
+  internalTrafficPolicy: {{ .Values.service.web.internalTrafficPolicy }} 
+  externalTrafficPolicy: {{ .Values.service.web.externalTrafficPolicy }}
+  allocateLoadBalancerNodePorts: {{ .Values.service.web.allocateLoadBalancerNodePorts }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "default.fullname" . }}-ldaps
+  labels:
+    {{- include "default.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.ldaps.type }}
+  ports:
+    {{- with toYaml .Values.service.ldaps.ports }}
+      {{- . | nindent 4 }}
+    {{- end }}
+  selector:
+    {{- include "default.selectorLabels" . | nindent 4 }}
+  externalIPs:
+  {{ range .Values.service.ldaps.externalIPs -}}
+    - {{ . | quote }}
+  {{- end }}
+  internalTrafficPolicy: {{ .Values.service.ldaps.internalTrafficPolicy }} 
+  externalTrafficPolicy: {{ .Values.service.ldaps.externalTrafficPolicy }}
+  allocateLoadBalancerNodePorts: {{ .Values.service.ldaps.allocateLoadBalancerNodePorts }}

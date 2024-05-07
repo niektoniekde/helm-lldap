@@ -1,0 +1,167 @@
+# Default values for default.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+name: lldap
+image:
+  repository: lldap/lldap
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+livenessProbe:
+  tcpSocket:
+    port: 3890
+  initialDelaySeconds: 15
+  periodSeconds: 10
+readinessProbe:
+  tcpSocket:
+    port: 3890
+  initialDelaySeconds: 15
+  periodSeconds: 10
+ports:
+  - name: ldaps-tcp
+    containerPort: 6360
+    protocol: TCP
+  - name: http-tcp
+    containerPort: 17170
+    protocol: TCP
+envVars:
+  - name: "UID"
+    value: "101"
+  - name: "GID"
+    value: "101"
+  - name: "TZ"
+    value: "Europe/Bratislava"
+  - name: "LLDAP_LDAPS_OPTIONS__ENABLED"
+    value: "true"
+  - name: "LLDAP_LDAPS_OPTIONS__CERT_FILE"
+    value: "/ssl/tls.crt"
+  - name: "LLDAP_LDAPS_OPTIONS__KEY_FILE"
+    value: "/ssl/tls.key"
+  - name:  "LLDAP_LDAP_BASE_DN"
+    value: "dc=example,dc=local"
+volumeMounts: 
+  - name: vol-lldap-data
+    mountPath: "/data"
+    readOnly: false
+  - name: vol-secret-tls
+    mountPath: "/ssl"
+    readOnly: true
+
+pvc:
+  data:
+    name: "pvc-lldap-data"
+    specs:
+      volumeName: "pvname"
+      storageClassName: ""
+      accessModes:
+        - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: 1Gi
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 101
+
+securityContext:
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  allowPrivilegeEscalation: false
+  seccompProfile:
+    type: RuntimeDefault
+  capabilities:
+    drop:
+    - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  web:
+    type: ClusterIP
+    ingressPort: 80
+    ports:
+      - protocol: TCP
+        port: 80
+        targetPort: 17170
+        name: port-lldap-web
+    internalTrafficPolicy: ""
+    externalTrafficPolicy: ""
+    allocateLoadBalancerNodePorts: ""
+  ldaps:
+    type: LoadBalancer
+    externalIPs: []
+    ports:
+      - protocol: TCP
+        port: 636
+        targetPort: 6360
+        name: port-lldap-ldaps
+    internalTrafficPolicy: Cluster
+    externalTrafficPolicy: Local
+    allocateLoadBalancerNodePorts: false
+
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: lldap.example.local
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: web 
+              port:
+                number: 80
+  tls:
+    - secretName: secret-tls
+      hosts:
+      - lldap.example.local
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

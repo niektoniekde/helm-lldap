@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "default.fullname" . }}-{{ .Values.pvc.data.name }}
+spec:
+  {{- toYaml .Values.pvc.data.specs | nindent 2 }}
+ 
